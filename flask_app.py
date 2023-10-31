@@ -33,8 +33,6 @@ def save_data_to_csv(project, business_type, value, contact, start_date, end_dat
     # 将合并后的数据保存回CSV
     df_combined.to_csv(csv_path, mode='a', header=False, index=False)
 
-
-
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
@@ -48,7 +46,7 @@ def index():
         duration = request.form['duration']
         remarks = request.form['remarks']
 
-        save_data_to_excel(project, business_type, value, contact, start_date, end_date, duration, remarks)
+        save_data_to_csv(project, business_type, value, contact, start_date, end_date, duration, remarks)
         
         flash('数据已成功保存!')
         return redirect(url_for('index'))
@@ -68,7 +66,7 @@ def submit():
     duration = request.form.get('duration', '')
     remarks = request.form.get('remarks', '')
 
-    save_data_to_excel(project, business_type, value, contact, start_date, end_date, duration, remarks)
+    save_data_to_csv(project, business_type, value, contact, start_date, end_date, duration, remarks)
     
     flash('数据已成功保存!')
     return redirect(url_for('index'))

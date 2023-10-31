@@ -10,7 +10,7 @@ import os
 app = Flask(__name__)
 app.secret_key = 'secret_key'
 
-def save_data_to_csv(project, designer, contact, start_date, end_date, duration, business_type, value, remarks):
+def save_data_to_csv(data):
     csv_path = './data/ProjectData.csv'
     
     # 尝试读取现有的数据，如果文件不存在，创建一个空的DataFrame
@@ -20,17 +20,19 @@ def save_data_to_csv(project, designer, contact, start_date, end_date, duration,
         df_existing = pd.DataFrame()
 
     # 创建新数据的DataFrame
-    new_data = pd.DataFrame({
-        '项目': [project],
-        '设计师': [designer],
-        '对接人': [contact],
-        '开始日期': [start_date],
-        '结束日期': [end_date],
-        '耗时/天': [duration],
-        '业务类型': [business_type],
-        '价值': [value],
-        '备注': [remarks]
-    })
+    
+    tmp = {
+        '项目': [data['project']],
+        '设计师': [data['designer']],
+        '对接人': [data['contact']],
+        '开始日期': [data['start_date']],
+        '结束日期': [data['end_date']],
+        '耗时/天': [data['duration']],
+        '业务类型': [data['business_type']],
+        '价值': [data['value']],
+        '备注': [data['remarks']]
+    }
+    new_data = pd.DataFrame(tmp)
 
     # 将新数据追加到现有的数据
     df_combined = pd.concat([df_existing, new_data], ignore_index=True)
@@ -49,17 +51,18 @@ def save_data_to_csv(project, designer, contact, start_date, end_date, duration,
 def index():
     if request.method == 'POST':
         # Collect data from the form
-        project = request.form['project']
-        designer = request.form['designer']
-        contact = request.form['contact']
-        start_date = request.form['start_date']
-        end_date = request.form['end_date']
-        duration = request.form['duration']
-        business_type = request.form['business_type']
-        value = request.form['value']
-        remarks = request.form['remarks']
+        data = {}
+        data['project'] = request.form['project']
+        data['designer'] = request.form['designer']
+        data['contact'] = request.form['contact']
+        data['start_date'] = request.form['start_date']
+        data['end_date'] = request.form['end_date']
+        data['duration'] = request.form['duration']
+        data['business_type'] = request.form['business_type']
+        data['value'] = request.form['value']
+        data['remarks'] = request.form['remarks']
 
-        save_data_to_csv(project, designer, contact, start_date, end_date, duration, business_type, value, remarks)
+        save_data_to_csv(data)
         
         flash('数据已成功保存!')
         return redirect(url_for('index'))
@@ -70,17 +73,18 @@ def index():
 @app.route('/submit', methods=['POST'])
 def submit():
     # Collect data from the form
-    project = request.form['project']
-    designer = request.form['designer']
-    contact = request.form['contact']
-    start_date = request.form['start_date']
-    end_date = request.form['end_date']
-    duration = request.form.get('duration', '')
-    business_type = request.form.get('business_type', '')
-    value = request.form.get('value', '')
-    remarks = request.form.get('remarks', '')
+    data = {}
+    data['project'] = request.form['project']
+    data['designer'] = request.form['designer']
+    data['contact'] = request.form['contact']
+    data['start_date'] = request.form['start_date']
+    data['end_date'] = request.form['end_date']
+    data['duration'] = request.form['duration']
+    data['business_type'] = request.form['business_type']
+    data['value'] = request.form['value']
+    data['remarks'] = request.form['remarks']
 
-    save_data_to_csv(project, designer, contact, start_date, end_date, duration, business_type, value, remarks)
+    save_data_to_csv(data)
     
     flash('数据已成功保存!')
     return redirect(url_for('index'))

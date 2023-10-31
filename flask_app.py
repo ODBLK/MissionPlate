@@ -10,28 +10,28 @@ import os
 app = Flask(__name__)
 app.secret_key = 'secret_key'
 
-def save_data_to_excel(project, business_type, value, contact, start_date, end_date, duration, remarks):
+def save_data_to_csv(project, business_type, value, contact, start_date, end_date, duration, remarks):
+    csv_path = './data/ProjectData.csv'
     # 读取现有的数据
-    df_existing = pd.read_excel('项目分析.xlsx', sheet_name="数据源")
+    df_existing = pd.read_csv(csv_path)
 
     # 创建新数据的DataFrame
     new_data = pd.DataFrame({
         '项目': [project],
-        '业务类型': [business_type],
-        '价值': [value],
         '对接人': [contact],
         '开始日期': [start_date],
         '结束日期': [end_date],
         '耗时/天': [duration],
+        '业务类型': [business_type],
+        '价值': [value],
         '备注': [remarks]
     })
 
     # 将新数据追加到现有的数据
     df_combined = pd.concat([df_existing, new_data], ignore_index=True)
 
-    # 将合并后的数据保存回Excel
-    with pd.ExcelWriter('项目分析.xlsx', engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
-        df_combined.to_excel(writer, sheet_name="数据源", index=False)
+    # 将合并后的数据保存回CSV
+    df_combined.to_csv(csv_path, mode='a', header=False, index=False)
 
 
 

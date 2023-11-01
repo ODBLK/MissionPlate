@@ -6,9 +6,6 @@ csv_dir = './data'
 csv_file = 'ProjectData.csv'
 csv_path = os.path.join(csv_dir, csv_file)
 
-# 读取csv文件
-df = pd.read_csv(csv_path)
-
 # 新增一个字典来存储业务价值的占比
 value_percentages = {
     '业务1': {'价值1': 0, '价值2': 0, '价值3': 0},

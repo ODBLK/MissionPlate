@@ -122,7 +122,7 @@ def value():
         flash('数据已更新!', 'success')
         return redirect(url_for('index'))
 
-    return render_template('value.html', values=value_percentages)
+    return render_template('value.html', values=value_percentages, config=config_data)
 
 if __name__ == '__main__':
     try:

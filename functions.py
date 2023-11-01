@@ -64,3 +64,15 @@ def save_value_to_csv(value_percentages):
     # 保存到文件
     df_existing.to_csv(csv_path, index=False, encoding='utf-8-sig')
     
+def vp_to_json(vp, json_path):
+    with open(json_path, 'w', encoding='utf-8') as f:
+        json.dump(vp, f, ensure_ascii=False)
+
+def json_to_vp(json_path):
+    with open(json_path, 'w', encoding='utf-8') as f:
+        vp = json.load(f)
+    return vp
+
+
+
+

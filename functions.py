@@ -2,7 +2,7 @@ import pandas as pd
 import os
 import json
 
-from utils import csv_dir, csv_path
+from utils import dir_prefix, value_file, project_file
 
 # 读取Json的配置文件
 def load_config():
@@ -26,44 +26,30 @@ else:
     valueRanges = []
 
 
-# 读写ProjectDate
-def save_project_to_csv(data):
+# 读写ProjectData, ValueData, flag传入'project'或'value'
+def save_data_to_csv(data, flag):
+    file_dict = {'project': project_file, 'value': value_file}
+    col_dict = {'project': ['项目', '对接人', '设计师', '开始日期', '结束日期', '耗时/天', '业务类型', '价值', '备注'], 
+                'value': ['业务', '价值', '占比']}
+    # 文件保存路径
+    file_path = os.path.join(dir_prefix, file_dict[flag])
     # 尝试读取现有的数据，如果文件不存在，创建一个空的DataFrame
-    if os.path.exists(csv_path):
-        df_existing = pd.read_csv(csv_path)
+    if os.path.exists(file_path):
+        df_existing = pd.read_csv(file_path)
     else:
         # 若data文件夹不存在
-        if not os.path.exists(csv_dir):
-            os.mkdir(csv_dir)
+        if not os.path.exists(dir_prefix):
+            os.mkdir(dir_prefix)
         df_existing = pd.DataFrame()
         # 创建header
-        df_existing = df_existing.reindex(columns=['项目', '对接人', '设计师', '开始日期', '结束日期', '耗时/天', '业务类型', '价值', '备注'])
+        df_existing = df_existing.reindex(columns=col_dict[flag])
 
     # 创建新数据的DataFrame
     df_existing.loc[df_existing.shape[0]] = data.values()
 
     # 保存到文件
-    df_existing.to_csv(csv_path, index=False, encoding='utf-8-sig')
+    df_existing.to_csv(file_path, index=False, encoding='utf-8-sig')
 
-#业务价值数据
-def save_value_to_csv(value_percentages):
-    # 尝试读取现有的数据，如果文件不存在，创建一个空的DataFrame
-    if os.path.exists(csv_path):
-        df_existing = pd.read_csv(csv_path)
-    else:
-        # 若data文件夹不存在
-        if not os.path.exists(csv_dir):
-            os.mkdir(csv_dir)
-        df_existing = pd.DataFrame()
-        # 创建header
-        df_existing = df_existing.reindex(columns=['业务', '价值', '占比'])
-
-    # 创建新数据的DataFrame
-    df_existing.loc[df_existing.shape[0]] = value_percentages.values()
-
-    # 保存到文件
-    df_existing.to_csv(csv_path, index=False, encoding='utf-8-sig')
-    
 def vp_to_json(vp, json_path):
     with open(json_path, 'w', encoding='utf-8') as f:
         json.dump(vp, f, ensure_ascii=False)

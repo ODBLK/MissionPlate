@@ -6,9 +6,10 @@ from io import BytesIO
 import base64
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+import os
 
-from utils import value_percentages, csv_path
-from functions import save_project_to_csv, save_value_to_csv, load_config
+from utils import value_percentages, dir_prefix, project_file
+from functions import save_data_to_csv, load_config
 
 app = Flask(__name__)
 app.secret_key = 'secret_key'
@@ -42,7 +43,7 @@ def index():
         data['value'] = request.form['value']
         data['remarks'] = request.form['remarks']
 
-        save_project_to_csv(data, [])
+        save_data_to_csv(data, 'project')
         
         flash('数据已成功保存!')
         return redirect(url_for('index'))
@@ -63,7 +64,7 @@ def submit():
     data['value'] = request.form['value']
     data['remarks'] = request.form['remarks']
 
-    save_project_to_csv(data)
+    save_data_to_csv(data, 'project')
     
     flash('数据已成功保存!')
     return redirect(url_for('index'))
@@ -71,7 +72,7 @@ def submit():
 @app.route('/chart', methods=['GET', 'POST'])
 def chart():
     # Load the data
-    df = pd.read_csv(csv_path)
+    df = pd.read_csv(os.path.join(dir_prefix, project_file))
 
     # Prepare the treemap data
     tree_data = df.groupby(['备注', '项目']).size().reset_index(name='counts')
@@ -117,7 +118,7 @@ def value():
                 return redirect(url_for('value'))
 
         # 这里可以将value_percentages保存到Excel表3.2
-        save_value_to_csv(value_percentages)
+        save_data_to_csv(value_percentages)
 
         flash('数据已更新!', 'success')
         return redirect(url_for('index'))

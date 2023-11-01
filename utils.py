@@ -2,9 +2,9 @@ import os
 import pandas as pd
 
 # 数据路径
-csv_dir = './data'
-csv_file = 'ProjectData.csv'
-csv_path = os.path.join(csv_dir, csv_file)
+dir_prefix = './data'
+project_file = 'ProjectData.csv'
+value_file = 'ValueData.csv'
 
 # 新增一个字典来存储业务价值的占比
 value_percentages = {

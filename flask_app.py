@@ -9,10 +9,10 @@ import os
 
 app = Flask(__name__)
 app.secret_key = 'secret_key'
+csv_path = './data/ProjectData.csv'
 
-def save_data_to_csv(data):
-    csv_path = './data/ProjectData.csv'
-    
+#读写csv 
+def save_data_to_csv(project, designer, contact, start_date, end_date, duration, business_type, value, remarks):
     # 尝试读取现有的数据，如果文件不存在，创建一个空的DataFrame
     try:
         df_existing = pd.read_csv(csv_path)
@@ -44,8 +44,6 @@ def save_data_to_csv(data):
     else:
         # 文件存在，覆盖原文件，不再次写入header
         df_combined.to_csv(csv_path, index=False, encoding='utf-8-sig')
-
-
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -93,7 +91,7 @@ def submit():
 @app.route('/chart', methods=['GET', 'POST'])
 def chart():
     # Load the data
-    df = pd.read_excel('项目分析.xlsx')
+    df = pd.read_csv(csv_path)
 
     # Prepare the treemap data
     tree_data = df.groupby(['备注', '项目']).size().reset_index(name='counts')

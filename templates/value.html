@@ -44,59 +44,64 @@
     <script>
 
 
-// 获取滑动条和输入框元素
-let sliders = {
-    '价值1': document.getElementById("slider-价值1"),
-    '价值2': document.getElementById("slider-价值2"),
-    '价值3': document.getElementById("slider-价值3")
-};
+// 使用config.valueRanges动态生成滑动条和输入框对象
+let sliders = {};
+let inputs = {};
+let predefinedColors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#FF9F40', '#9966FF', '#C45850', '#E6E6FA', '#7FFFD4', '#FFD700'];
+let valueRanges = {{ config.valueRanges|tojson }}; // 从Jinja2模板变量获取价值范围
 
-let inputs = {
-    '价值1': document.getElementById("input-价值1"),
-    '价值2': document.getElementById("input-价值2"),
-    '价值3': document.getElementById("input-价值3")
-};
+for (let i = 0; i < valueRanges.length; i++) {
+    let value = valueRanges[i];
+    sliders[value] = document.getElementById("slider-" + value);
+    inputs[value] = document.getElementById("input-" + value);
+}
 
-        // 初始化Chart.js饼图
-        let ctx = document.getElementById('valueChart').getContext('2d');
-        let chart = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['价值1', '价值2', '价值3', '未分配'],
-                datasets: [{
-                    data: [0, 0, 0, 100], // 初始数据
-                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#D3D3D3'], // 初始颜色
-                    borderWidth: 0 // 设置边框宽度为0，以防止任何可能的边框显示
-                }]
-            },
-            options: {
-                cutout: '0.1%', 
-                animation: {
-                    duration: 0  
-                },
-                legend: {
-                    display: false
-                }
-            }
-        });
+let colorsToUse = predefinedColors.slice(0, valueRanges.length).concat(['#D3D3D3']); // 最后一个颜色是未分配的颜色
 
-        
-// 更新饼图函数
+// 初始化Chart.js饼图
+let ctx = document.getElementById('valueChart').getContext('2d');
+let initialData = Array(valueRanges.length).fill(0).concat([100]); // 初始数据为0，余下的为100
+let chart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+        labels: valueRanges.concat(['未分配']),
+        datasets: [{
+            data: initialData,
+            backgroundColor: colorsToUse, // 使用正确的颜色数组
+            borderWidth: 0 // 设置边框宽度为0，以防止任何可能的边框显示
+        }]
+    },
+    options: {
+        cutout: '0.1%', 
+        animation: {
+            duration: 0  
+        },
+        legend: {
+            display: false
+        }
+    }
+});
+
+// 更新饼图函数 (不需要再次定义 colorsToUse)
 function updateChart() {
-    let v1 = parseInt(sliders['价值1'].value);
-    let v2 = parseInt(sliders['价值2'].value);
-    let v3 = parseInt(sliders['价值3'].value);
-    let unallocated = 100 - (v1 + v2 + v3);  // 计算未分配的部分
+    let total = 0;
+    let values = [];
+    for (let value of valueRanges) {
+        let v = parseInt(sliders[value].value);
+        values.push(v);
+        total += v;
+    }
+    let unallocated = 100 - total;  // 计算未分配的部分
 
-    if (v1 === 0 && v2 === 0 && v3 === 0) {
+    if (total === 0) {
         // 当所有数据点都为0时，仅使用一个数据点来渲染饼图
         chart.data.labels = ['未分配'];
         chart.data.datasets[0].data = [100];
         chart.data.datasets[0].backgroundColor = ['#D3D3D3'];
     } else {
-        chart.data.labels = ['价值1', '价值2', '价值3', '未分配'];
-        chart.data.datasets[0].data = [v1, v2, v3, unallocated];
-        chart.data.datasets[0].backgroundColor = ['#FF6384', '#36A2EB', '#FFCE56', '#D3D3D3'];
+        chart.data.labels = valueRanges.concat(['未分配']);
+        chart.data.datasets[0].data = values.concat([unallocated]);
+        chart.data.datasets[0].backgroundColor = colorsToUse;
     }
 
     chart.update({
@@ -105,6 +110,8 @@ function updateChart() {
         easing: 'easeOutBounce'
     });
 }
+
+
 
 // 更新滑动条和输入框的最大值
 function updateMaxValues(changedValue) {

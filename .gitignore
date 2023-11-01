@@ -4,3 +4,4 @@ __pycache__/*
 *.csv
 templates/value - 副本.html
 config.json
+config.json

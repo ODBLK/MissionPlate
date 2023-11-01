@@ -9,41 +9,25 @@ import os
 
 app = Flask(__name__)
 app.secret_key = 'secret_key'
-csv_path = './data/ProjectData.csv'
 
-#读写csv 
-def save_data_to_csv(project, designer, contact, start_date, end_date, duration, business_type, value, remarks):
+def save_data_to_csv(data):
+    csv_path = './data/ProjectData.csv'
+    
     # 尝试读取现有的数据，如果文件不存在，创建一个空的DataFrame
-    try:
+    if os.path.exists(csv_path):
         df_existing = pd.read_csv(csv_path)
-    except FileNotFoundError:
+    else:
         df_existing = pd.DataFrame()
+        # 创建header
+        df_existing = df_existing.reindex(columns=['项目', '设计师', '对接人', '开始日期', '结束日期', '耗时/天', '业务类型', '价值', '备注'])
 
     # 创建新数据的DataFrame
-    
-    tmp = {
-        '项目': [data['project']],
-        '设计师': [data['designer']],
-        '对接人': [data['contact']],
-        '开始日期': [data['start_date']],
-        '结束日期': [data['end_date']],
-        '耗时/天': [data['duration']],
-        '业务类型': [data['business_type']],
-        '价值': [data['value']],
-        '备注': [data['remarks']]
-    }
-    new_data = pd.DataFrame(tmp)
+    df_existing.loc[df_existing.shape[0]] = data.values()
 
-    # 将新数据追加到现有的数据
-    df_combined = pd.concat([df_existing, new_data], ignore_index=True)
+    # 保存到文件
+    df_existing.to_csv(csv_path, index=False, encoding='utf-8-sig')
 
-    # 检查CSV文件是否存在
-    if not os.path.isfile(csv_path):
-        # 文件不存在，写入新文件，并包含header
-        df_combined.to_csv(csv_path, index=False, encoding='utf-8-sig')
-    else:
-        # 文件存在，覆盖原文件，不再次写入header
-        df_combined.to_csv(csv_path, index=False, encoding='utf-8-sig')
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -91,7 +75,7 @@ def submit():
 @app.route('/chart', methods=['GET', 'POST'])
 def chart():
     # Load the data
-    df = pd.read_csv(csv_path)
+    df = pd.read_csv('项目分析.xlsx')
 
     # Prepare the treemap data
     tree_data = df.groupby(['备注', '项目']).size().reset_index(name='counts')

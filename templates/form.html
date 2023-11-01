@@ -3,27 +3,27 @@
 {% block content %}
 <h1>填写项目信息</h1>
 <form action="/submit" method="post" onsubmit="return validateForm()">
-       <script>
-           function calculateDuration() {
-               var startDate = new Date(document.getElementById("start_date").value);
-               var endDate = new Date(document.getElementById("end_date").value);
-               var timeDifference = endDate.getTime() - startDate.getTime();
-               var daysDifference = Math.ceil(timeDifference / (1000 * 3600 * 24));
-               if (!isNaN(daysDifference) && daysDifference > 0) {
-                   document.getElementById("duration").value = daysDifference;
-               }
-           }
+    <script>
+        function calculateDuration() {
+            var startDate = new Date(document.getElementById("start_date").value);
+            var endDate = new Date(document.getElementById("end_date").value);
+            var timeDifference = endDate.getTime() - startDate.getTime();
+            var daysDifference = Math.ceil(timeDifference / (1000 * 3600 * 24));
+                if (!isNaN(daysDifference) && daysDifference > 0) {
+                document.getElementById("duration").value = daysDifference;
+                }
+            }
 
-           function validateForm() {
-               var startDate = document.getElementById("start_date").value;
-               var endDate = document.getElementById("end_date").value;
-               if (!startDate || !endDate) {
-                   alert("请填写开始和结束日期");
-                   return false;
-               }
-               return true;
-           }
-       </script>
+        function validateForm() {
+            var startDate = document.getElementById("start_date").value;
+            var endDate = document.getElementById("end_date").value;
+            if (!startDate || !endDate) {
+                alert("请填写开始和结束日期");
+                return false;
+            }
+            return true;
+            }
+    </script>
     <table>
         <tr>
             <td>项目:</td>
@@ -39,6 +39,7 @@
                 <span class="error" id="contactError"></span>
             </td>
         </tr>
+
         <tr>
             <td>设计师:</td>
             <td>
@@ -46,6 +47,7 @@
                 <span class="error" id="designerError"></span>
             </td>
         </tr>
+
         <tr>
             <td>开始日期:</td>
             <td>
@@ -53,6 +55,7 @@
                 <span class="error" id="startDateError"></span>
             </td>
         </tr>
+
         <tr>
             <td>结束日期:</td>
             <td>
@@ -60,32 +63,34 @@
                 <span class="error" id="endDateError"></span>
             </td>
         </tr>
+
         <tr>
-          <td>耗时/天:</td>
-          <td><input type="number" id="duration" name="duration" readonly></td>
+            <td>耗时/天:</td>
+            <td><input type="number" id="duration" name="duration" readonly></td>
         </tr>
+
         <tr>
-          <td>业务类型:</td>
-          <td>
-              <select name="business_type" required>
-                  <option value="业务1">业务1</option>
-                  <option value="业务2">业务2</option>
-                  <option value="业务3">业务3</option>
-                  <option value="业务4">业务4</option>
-                  <option value="其他">其他</option>
-              </select>
-          </td>
-      </tr>
-      <tr>
-          <td>价值:</td>
-          <td>
-              <select name="value" required>
-                  <option value="价值1">价值1</option>
-                  <option value="价值2">价值2</option>
-                  <option value="价值3">价值3</option>
-              </select>
-          </td>
-      </tr>
+            <td>业务类型:</td>
+            <td>
+                <select name="business_type" required>
+                    {% for business in config.businessOptions %}
+                    <option value="{{ business }}">{{ business }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+        </tr>
+        
+        <tr>
+            <td>价值:</td>
+            <td>
+                <select name="value" required>
+                    {% for value in config.valueRanges %}
+                    <option value="{{ value }}">{{ value }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+        </tr>
+        
         <tr>
             <td>备注:</td>
             <td>

@@ -4,15 +4,31 @@ import matplotlib.pyplot as plt
 import squarify
 from io import BytesIO
 import base64
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
 
 from utils import value_percentages, csv_path
-from functions import save_data_to_csv
+from functions import save_project_to_csv, save_value_to_csv, load_config
 
 app = Flask(__name__)
 app.secret_key = 'secret_key'
+config_data = load_config()  # 初始加载配置数据
+
+class ConfigFileHandler(FileSystemEventHandler):
+    def on_modified(self, event):
+        global config_data
+        if not event.is_directory and event.src_path.endswith('config.json'):
+            config_data = load_config()
+            print("Config reloaded!")  # 可选，输出一个消息以确认配置已重新加载
+
+# 设置文件监控
+observer = Observer()
+observer.schedule(ConfigFileHandler(), path='.', recursive=False)
+observer.start()
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    
     if request.method == 'POST':
         # Collect data from the form
         data = {}
@@ -26,12 +42,12 @@ def index():
         data['value'] = request.form['value']
         data['remarks'] = request.form['remarks']
 
-        save_data_to_csv(data, [])
+        save_project_to_csv(data, [])
         
         flash('数据已成功保存!')
         return redirect(url_for('index'))
 
-    return render_template('form.html')
+    return render_template('form.html', config=config_data)
 
 @app.route('/submit', methods=['POST'])
 def submit():
@@ -47,7 +63,7 @@ def submit():
     data['value'] = request.form['value']
     data['remarks'] = request.form['remarks']
 
-    save_data_to_csv(data)
+    save_project_to_csv(data)
     
     flash('数据已成功保存!')
     return redirect(url_for('index'))
@@ -101,7 +117,7 @@ def value():
                 return redirect(url_for('value'))
 
         # 这里可以将value_percentages保存到Excel表3.2
-        save_to_excel(value_percentages)
+        save_value_to_csv(value_percentages)
 
         flash('数据已更新!', 'success')
         return redirect(url_for('index'))
@@ -109,4 +125,8 @@ def value():
     return render_template('value.html', values=value_percentages)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    try:
+        app.run(debug=True)
+    finally:
+        observer.stop()
+    observer.join()

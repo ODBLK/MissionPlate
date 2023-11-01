@@ -9,10 +9,10 @@ import os
 
 app = Flask(__name__)
 app.secret_key = 'secret_key'
-
-def save_data_to_csv(data):
-    csv_path = './data/ProjectData.csv'
+csv_path = './data/ProjectData.csv'
     
+#读写csv 
+def save_data_to_csv(data):
     # 尝试读取现有的数据，如果文件不存在，创建一个空的DataFrame
     if os.path.exists(csv_path):
         df_existing = pd.read_csv(csv_path)
@@ -28,6 +28,13 @@ def save_data_to_csv(data):
     df_existing.to_csv(csv_path, index=False, encoding='utf-8-sig')
 
 
+    # 检查CSV文件是否存在
+    if not os.path.isfile(csv_path):
+        # 文件不存在，写入新文件，并包含header
+        df_combined.to_csv(csv_path, index=False, encoding='utf-8-sig')
+    else:
+        # 文件存在，覆盖原文件
+        df_combined.to_csv(csv_path, index=False, encoding='utf-8-sig')
 
 @app.route('/', methods=['GET', 'POST'])
 def index():

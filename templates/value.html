@@ -5,28 +5,147 @@
     <h2>业务价值分配</h2>
     <form action="/value" method="post">
         <div class="row">
-            {% for business in ['业务1', '业务2', '业务3', '业务4', '其他'] %}
-            <div class="col">
-                <div class="card">
-                    <div class="card-header">
-                        {{ business }}
-                    </div>
-                    <div class="card-body">
-                        {% for value in ['价值1', '价值2', '价值3'] %}
-                        <div class="form-group">
-                            <label for="{{ business }}-{{ value }}">{{ value }}</label>
-                            <input type="number" class="form-control" id="{{ business }}-{{ value }}" name="{{ business }}-{{ value }}" min="0" max="100" step="0.1">
-                        </div>
+            <!-- Left column: business type selection, sliders, and input boxes -->
+            <div class="col-md-6">
+                <!-- Dropdown menu for business type -->
+                <div class="form-group">
+                    <label for="businessType">选择业务类型:</label>
+                    <select class="form-control" id="businessType" name="businessType" style="width: 33%;">
+                        {% for business in ['业务1', '业务2', '业务3', '业务4', '其他'] %}
+                        <option value="{{ business }}">{{ business }}</option>
                         {% endfor %}
-                    </div>
+                    </select>
                 </div>
+
+                <!-- Sliders and input boxes for values -->
+                <div class="d-flex flex-column align-items-start"></div>
+                    {% for value in ['价值1', '价值2', '价值3'] %}
+                    <div class="form-group d-flex align-items-center w-100">
+                        <label for="slider-{{ value }}" class="mr-2 flex-shrink-0" style="min-width: 80px;">{{ value }}:</label>
+                        <input type="range" class="form-control-range mr-2" id="slider-{{ value }}" name="{{ value }}" min="0" max="100" value="0" step="1" style="flex-grow: 1;">
+                        <input type="number" class="form-control" id="input-{{ value }}" name="input-{{ value }}" min="0" max="100" value="0" style="width: 80px;">
+                        <span class="ml-2">%</span>
+                    </div>
+                    {% endfor %}
+                </div>
+
+            <!-- Right column: pie chart for visual feedback -->
+            <div class="col-md-6">
+                <canvas id="valueChart" width="400" height="400"></canvas>
             </div>
-            {% endfor %}
         </div>
-        
+
         <div class="mt-4">
             <button type="submit" class="btn btn-primary">更新价值分配</button>
         </div>
     </form>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// 获取滑动条和输入框元素
+let sliders = {
+    '价值1': document.getElementById("slider-价值1"),
+    '价值2': document.getElementById("slider-价值2"),
+    '价值3': document.getElementById("slider-价值3")
+};
+
+let inputs = {
+    '价值1': document.getElementById("input-价值1"),
+    '价值2': document.getElementById("input-价值2"),
+    '价值3': document.getElementById("input-价值3")
+};
+
+// 初始化Chart.js饼图
+let ctx = document.getElementById('valueChart').getContext('2d');
+let chart = new Chart(ctx, {
+    type: 'doughnut', // 使用环形图
+    data: {
+        labels: ['价值1', '价值2', '价值3', '未分配'],
+        datasets: [{
+            data: [0, 0, 0, 100], // 初始数据
+            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#D3D3D3'], // 初始颜色
+            borderWidth: 0 // 设置边框宽度为0，以防止任何可能的边框显示
+        }]
+    },
+    options: {
+        cutout: '0.1%', // 非常小的内半径
+        animation: {
+            duration: 0  // 设置动画时长为0，即禁用动画效果
+        }
+    }
+});
+
+// 更新饼图函数
+function updateChart() {
+    let v1 = parseInt(sliders['价值1'].value);
+    let v2 = parseInt(sliders['价值2'].value);
+    let v3 = parseInt(sliders['价值3'].value);
+    let unallocated = 100 - (v1 + v2 + v3);  // 计算未分配的部分
+
+    if (v1 === 0 && v2 === 0 && v3 === 0) {
+        // 当所有数据点都为0时，仅使用一个数据点来渲染饼图
+        chart.data.labels = ['未分配'];
+        chart.data.datasets[0].data = [100];
+        chart.data.datasets[0].backgroundColor = ['#D3D3D3'];
+    } else {
+        chart.data.labels = ['价值1', '价值2', '价值3', '未分配'];
+        chart.data.datasets[0].data = [v1, v2, v3, unallocated];
+        chart.data.datasets[0].backgroundColor = ['#FF6384', '#36A2EB', '#FFCE56', '#D3D3D3'];
+    }
+
+    chart.update({
+        duration: 0,
+        lazy: false,
+        easing: 'easeOutBounce'
+    });
+}
+
+// 更新滑动条和输入框的最大值
+function updateMaxValues(changedValue) {
+    let total = 0;
+    for (let value in sliders) {
+        if (value !== changedValue) {
+            total += parseInt(sliders[value].value);
+        }
+    }
+    let remaining = 100 - total - parseInt(sliders[changedValue].value);
+    for (let value in sliders) {
+        if (value !== changedValue) {
+            let maxValue = parseInt(sliders[value].value) + remaining;
+            if (maxValue < 0) maxValue = 0;
+            if (maxValue > 100) maxValue = 100;
+            sliders[value].max = maxValue;
+            inputs[value].max = maxValue;
+        }
+    }
+}
+
+// 滑动条事件监听器
+for (let value in sliders) {
+    sliders[value].addEventListener('input', function() {
+        inputs[value].value = Math.floor(this.value);
+        updateMaxValues(value);
+        updateChart();
+    });
+}
+
+// 输入框事件监听器
+for (let value in inputs) {
+    inputs[value].addEventListener('input', function() {
+        let maxValue = parseInt(sliders[value].max);
+        if (parseInt(this.value) > maxValue) {
+            this.value = maxValue;
+        } else if (parseInt(this.value) < 0) {
+            this.value = 0;
+        }
+        
+        sliders[value].value = Math.floor(this.value);
+        updateMaxValues(value);
+        updateChart();
+    });
+}
+
+
+</script>
 {% endblock %}

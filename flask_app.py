@@ -7,37 +7,11 @@ from io import BytesIO
 import base64
 import os
 
+from utils import *
+from functions import *
+
 app = Flask(__name__)
 app.secret_key = 'secret_key'
-csv_path = './data/ProjectData.csv'
-    
-#读写csv 
-def save_data_to_csv(data):
-    # 尝试读取现有的数据，如果文件不存在，创建一个空的DataFrame
-    if os.path.exists(csv_path):
-        df_existing = pd.read_csv(csv_path)
-    else:
-        # 若data文件夹不存在
-        if not os.path.exists('./data'):
-            os.mkdir('./data')
-        df_existing = pd.DataFrame()
-        # 创建header
-        df_existing = df_existing.reindex(columns=['项目', '设计师', '对接人', '开始日期', '结束日期', '耗时/天', '业务类型', '价值', '备注'])
-
-    # 创建新数据的DataFrame
-    df_existing.loc[df_existing.shape[0]] = data.values()
-
-    # 保存到文件
-    df_existing.to_csv(csv_path, index=False, encoding='utf-8-sig')
-
-
-    # 检查CSV文件是否存在
-    if not os.path.isfile(csv_path):
-        # 文件不存在，写入新文件，并包含header
-        df_combined.to_csv(csv_path, index=False, encoding='utf-8-sig')
-    else:
-        # 文件存在，覆盖原文件
-        df_combined.to_csv(csv_path, index=False, encoding='utf-8-sig')
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -54,7 +28,7 @@ def index():
         data['value'] = request.form['value']
         data['remarks'] = request.form['remarks']
 
-        save_data_to_csv(data)
+        save_data_to_csv(data, [])
         
         flash('数据已成功保存!')
         return redirect(url_for('index'))
@@ -81,11 +55,10 @@ def submit():
     flash('数据已成功保存!')
     return redirect(url_for('index'))
 
-
 @app.route('/chart', methods=['GET', 'POST'])
 def chart():
     # Load the data
-    df = pd.read_csv('项目分析.xlsx')
+    df = pd.read_csv(csv_path)
 
     # Prepare the treemap data
     tree_data = df.groupby(['备注', '项目']).size().reset_index(name='counts')
@@ -109,8 +82,6 @@ def chart():
 
     return render_template('chart.html', graph_url=graph_url)
 
-
-
 @app.route('/calendar')
 def calendar():
     return render_template('calendar.html')
@@ -118,22 +89,6 @@ def calendar():
 @app.route('/gantt')
 def gantt():
     return render_template('gantt.html')
-
-
-
-
-# 读取Excel文件
-data_path = "项目分析.xlsx"
-df = pd.read_excel(data_path, sheet_name="数据源")
-
-# 新增一个字典来存储业务价值的占比
-value_percentages = {
-    '业务1': {'价值1': 0, '价值2': 0, '价值3': 0},
-    '业务2': {'价值1': 0, '价值2': 0, '价值3': 0},
-    '业务3': {'价值1': 0, '价值2': 0, '价值3': 0},
-    '业务4': {'价值1': 0, '价值2': 0, '价值3': 0},
-    '其他': {'价值1': 0, '价值2': 0, '价值3': 0}
-}
 
 @app.route('/value', methods=['GET', 'POST'])
 def value():

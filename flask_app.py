@@ -35,7 +35,6 @@ def index():
 
     return render_template('form.html')
 
-
 @app.route('/submit', methods=['POST'])
 def submit():
     # Collect data from the form

@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import json
 
 from utils import csv_dir, csv_path
 
@@ -21,3 +22,18 @@ def save_data_to_csv(data):
 
     # 保存到文件
     df_existing.to_csv(csv_path, index=False, encoding='utf-8-sig')
+
+def vp_to_json(vp, json_path):
+    vp_t = json.dumps(vp, ensure_ascii=False)
+    with open(json_path, 'w', encoding='utf-8') as f:
+        json.dump(vp_t, f, ensure_ascii=False)
+
+def json_to_vp(json_path):
+    with open(json_path, 'w', encoding='utf-8') as f:
+        vp = json.load(f)
+    vp = json.loads(vp)
+    return vp
+
+
+
+

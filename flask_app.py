@@ -17,6 +17,9 @@ def save_data_to_csv(data):
     if os.path.exists(csv_path):
         df_existing = pd.read_csv(csv_path)
     else:
+        # 若data文件夹不存在
+        if not os.path.exists('./data'):
+            os.mkdir('./data')
         df_existing = pd.DataFrame()
         # 创建header
         df_existing = df_existing.reindex(columns=['项目', '设计师', '对接人', '开始日期', '结束日期', '耗时/天', '业务类型', '价值', '备注'])

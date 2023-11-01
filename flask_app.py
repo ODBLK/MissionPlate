@@ -9,18 +9,21 @@ from watchdog.events import FileSystemEventHandler
 import os
 
 from utils import value_percentages, dir_prefix, project_file
-from functions import save_data_to_csv, load_config
+from functions import save_data_to_csv, load_config, generate_value_percentages
 
 app = Flask(__name__)
 app.secret_key = 'secret_key'
 config_data = load_config()  # 初始加载配置数据
+value_percentages = generate_value_percentages(config_data)
 
 class ConfigFileHandler(FileSystemEventHandler):
     def on_modified(self, event):
-        global config_data
+        global config_data, value_percentages
         if not event.is_directory and event.src_path.endswith('config.json'):
+            print(f"Detected modification: {event}")  # 打印事件详情
             config_data = load_config()
-            print("Config reloaded!")  # 可选，输出一个消息以确认配置已重新加载
+            value_percentages = generate_value_percentages(config_data)
+            print("Config reloaded and value percentages updated!")
 
 # 设置文件监控
 observer = Observer()
@@ -29,7 +32,6 @@ observer.start()
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    
     if request.method == 'POST':
         # Collect data from the form
         data = {}
@@ -44,7 +46,6 @@ def index():
         data['remarks'] = request.form['remarks']
 
         save_data_to_csv(data, 'project')
-        
         flash('数据已成功保存!')
         return redirect(url_for('index'))
 
@@ -110,19 +111,18 @@ def value():
         for key in value_percentages.keys():
             for subkey in value_percentages[key].keys():
                 value_percentages[key][subkey] = float(request.form.get(f"{key}_{subkey}", 0))
-
-        # 验证三项加起来是否为100%
+        
+        # 验证各项百分比加起来是否为100%
         for key, sub_dict in value_percentages.items():
             if sum(sub_dict.values()) != 100.0:
                 flash(f'{key}的价值占比总和不为100%', 'danger')
                 return redirect(url_for('value'))
-
+        
         # 这里可以将value_percentages保存到Excel表3.2
         save_data_to_csv(value_percentages)
-
         flash('数据已更新!', 'success')
         return redirect(url_for('index'))
-
+    
     return render_template('value.html', values=value_percentages, config=config_data)
 
 if __name__ == '__main__':

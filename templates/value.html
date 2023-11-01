@@ -1,6 +1,6 @@
 {% extends "base_template.html" %}
-
 {% block content %}
+
 <div class="container mt-4">
     <h1 class="mb-4">业务价值分配</h1>
     <form action="/value" method="post">   
@@ -18,7 +18,7 @@
                 </div>
 
                 <!-- Sliders and input boxes for values -->
-                <div class="d-flex flex-column align-items-start"></div>
+                <div class="d-flex flex-column align-items-start">
                     {% for value in config.valueRanges %}
                     <div class="form-group d-flex align-items-center w-100">
                         <label for="slider-{{ value }}" class="mr-2 flex-shrink-0" style="min-width: 80px;">{{ value }}:</label>
@@ -27,6 +27,8 @@
                         <span class="ml-2">%</span>
                     </div>
                     {% endfor %}
+                </div> <!-- Close the flex-column div here -->
+
                 <div class="form-group">
                     <button type="submit" class="btn btn-primary">更新价值分配</button>
                 </div>
@@ -39,11 +41,10 @@
         </div>
     </form>
 </div>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 
-
+<script>
 // 使用config.valueRanges动态生成滑动条和输入框对象
 let sliders = {};
 let inputs = {};
@@ -168,7 +169,7 @@ for (let value in inputs) {
     });
 }
 
-    </script>
+</script>
 </body>
 </html>
 {% endblock %}

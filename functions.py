@@ -6,11 +6,14 @@ from utils import dir_prefix, value_file, project_file
 
 # 读取Json的配置文件
 def load_config():
+    # 获取config.json的绝对路径
+    config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json')
     try:
-        with open('config.json', 'r', encoding='utf-8') as f:
+        with open(config_path, 'r', encoding='utf-8') as f:
             return json.load(f)
+
     except FileNotFoundError:
-        print("Error: config.json not found.")
+        print("Error: {config_path} not found.")
         return None
     except json.JSONDecodeError:
         print("Error: config.json has invalid format.")
@@ -24,7 +27,6 @@ else:
     # Provide default values or handle errors as needed
     businessOptions = []
     valueRanges = []
-
 
 # 读写ProjectData, ValueData, flag传入'project'或'value'
 def save_data_to_csv(data, flag):
@@ -58,6 +60,15 @@ def json_to_vp(json_path):
     with open(json_path, 'w', encoding='utf-8') as f:
         vp = json.load(f)
     return vp
+#由json生成value_percentages
+def generate_value_percentages(config):
+    value_percentages = {}
+    for business in config.get("businessOptions", []):
+        value_percentages[business] = {}
+        for value in config.get("valueRanges", []):
+            value_percentages[business][value] = 0
+    return value_percentages
+
 
 
 

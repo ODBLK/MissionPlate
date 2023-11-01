@@ -1,14 +1,12 @@
-
 from flask import Flask, render_template, request, redirect, url_for, flash
 import pandas as pd
 import matplotlib.pyplot as plt
 import squarify
 from io import BytesIO
 import base64
-import os
 
-from utils import *
-from functions import *
+from utils import value_percentages, csv_path
+from functions import save_data_to_csv
 
 app = Flask(__name__)
 app.secret_key = 'secret_key'

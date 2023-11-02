@@ -19,15 +19,6 @@ def load_config():
         print("Error: config.json has invalid format.")
         return None
 
-config = load_config()
-if config:
-    businessOptions = config.get("businessOptions", [])
-    valueRanges = config.get("valueRanges", [])
-else:
-    # Provide default values or handle errors as needed
-    businessOptions = []
-    valueRanges = []
-
 # 读写ProjectData, ValueData, flag传入'project'或'value'
 def save_data_to_csv(data, flag):
     file_dict = {'project': project_file, 'value': value_file}
@@ -52,6 +43,10 @@ def save_data_to_csv(data, flag):
     # 保存到文件
     df_existing.to_csv(file_path, index=False, encoding='utf-8-sig')
 
+# data:{"业务"：{"价值1":15%, "价值2":20%, ...}, ...}
+def save_value_to_data(data):
+    pass
+
 #由json生成value_percentages
 def generate_value_percentages(config):
     value_percentages = {}
@@ -60,6 +55,26 @@ def generate_value_percentages(config):
         for value in config.get("valueRanges", []):
             value_percentages[business][value] = 0
     return value_percentages
+
+def init_value_csv():
+    config_data = load_config()  # 初始加载配置数据
+    value_percentages = generate_value_percentages(config_data)
+    # 初始化df
+    value_csv = pd.DataFrame()
+    value_csv = value_csv.reindex(columns=["业务", "价值", "占比"])
+    for i in value_percentages.keys():
+        for j in value_percentages[i].keys():
+            value_csv.loc[value_csv.shape[0]] = [i, j, 0]
+    # 保存df
+    if not os.path.exists(dir_prefix):
+        os.mkdir(dir_prefix)
+    value_csv.to_csv(os.path.join(dir_prefix, value_file), index=False, encoding='utf-8-sig')
+
+# test
+if __name__ == '__main__':
+    init_value_csv()    
+
+
 
 
 

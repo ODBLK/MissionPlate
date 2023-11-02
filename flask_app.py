@@ -8,7 +8,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 import os
 
-from utils import value_percentages, dir_prefix, project_file
+from utils import value_percentages, dir_prefix, project_file, req_info
 from functions import save_data_to_csv, load_config, generate_value_percentages
 
 app = Flask(__name__)
@@ -35,15 +35,8 @@ def index():
     if request.method == 'POST':
         # Collect data from the form
         data = {}
-        data['project'] = request.form['project']
-        data['designer'] = request.form['designer']
-        data['contact'] = request.form['contact']
-        data['start_date'] = request.form['start_date']
-        data['end_date'] = request.form['end_date']
-        data['duration'] = request.form['duration']
-        data['business_type'] = request.form['business_type']
-        data['value'] = request.form['value']
-        data['remarks'] = request.form['remarks']
+        for i in req_info:
+            data[i] = request.form[i]
 
         save_data_to_csv(data, 'project')
         flash('数据已成功保存!')
@@ -55,15 +48,8 @@ def index():
 def submit():
     # Collect data from the form
     data = {}
-    data['project'] = request.form['project']
-    data['designer'] = request.form['designer']
-    data['contact'] = request.form['contact']
-    data['start_date'] = request.form['start_date']
-    data['end_date'] = request.form['end_date']
-    data['duration'] = request.form['duration']
-    data['business_type'] = request.form['business_type']
-    data['value'] = request.form['value']
-    data['remarks'] = request.form['remarks']
+    for i in req_info:
+            data[i] = request.form[i]
 
     save_data_to_csv(data, 'project')
     

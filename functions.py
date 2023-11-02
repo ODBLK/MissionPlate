@@ -45,7 +45,15 @@ def save_data_to_csv(data, flag):
 
 # data:{"业务"：{"价值1":15%, "价值2":20%, ...}, ...}
 def save_value_to_data(data):
-    pass
+    value_file_path = os.path.join(dir_prefix, value_file)
+    if not os.path.exists(value_file_path):
+        # 初始文件不存在，报错
+        pass
+    value_csv = pd.read_csv(value_file_path)
+    for i in range(value_csv.shape[0]):
+        if value_csv.loc[i]["业务"] == data[0]:
+            pass
+
 
 #由json生成value_percentages
 def generate_value_percentages(config):

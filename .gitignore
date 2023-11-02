@@ -5,3 +5,4 @@ __pycache__/*
 templates/value - 副本.html
 config.json
 config.json
+*.ipynb

@@ -117,11 +117,11 @@ def value():
                 form_key = f"{key}_{subkey}"
                 value_percentages[key][subkey] = float(request.form.get(form_key, 0))
 
-        # 验证每个业务类型的各价值占比总和是否为100%
-        for key, sub_dict in value_percentages.items():
-            if sum(sub_dict.values()) != 100.0:
-                flash(f'{key}的价值占比总和不为100%', 'danger')
-                return redirect(url_for('value'))
+        # # 验证每个业务类型的各价值占比总和是否为100%
+        # for key, sub_dict in value_percentages.items():
+        #     if sum(sub_dict.values()) != 100.0:
+        #         flash(f'{key}的价值占比总和不为100%', 'danger')
+        #         return redirect(url_for('value'))
 
         # 保存更新后的 value_percentages 到 CSV 文件
         save_or_update_value_csv(value_percentages)

@@ -139,8 +139,8 @@ def save_or_update_value_csv(value_percentages):
 
 
 # test
-# if __name__ == '__main__':
-#     init_value_csv()    
+if __name__ == '__main__':
+    save_or_update_value_csv(generate_value_percentages(load_config()))    
 
 
 

@@ -8,7 +8,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 import os
 
-from utils import value_percentages, dir_prefix, project_file, value_file, req_info
+from utils import dir_prefix, project_file, value_file, req_info
 from functions import save_data_to_csv, load_config, generate_value_percentages, save_or_update_value_csv
 
 app = Flask(__name__)

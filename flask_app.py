@@ -8,14 +8,23 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 import os
 
-from utils import value_percentages, dir_prefix, project_file, req_info
-from functions import save_data_to_csv, load_config, generate_value_percentages
+from utils import value_percentages, dir_prefix, project_file, value_file, req_info
+from functions import save_data_to_csv, load_config, generate_value_percentages, save_or_update_value_csv
 
 app = Flask(__name__)
 app.secret_key = 'secret_key'
 config_data = load_config()  # 初始加载配置数据
 value_percentages = generate_value_percentages(config_data)
 
+#读取config
+# class ConfigFileHandler(FileSystemEventHandler):
+#     def on_modified(self, event):
+#         global config_data, value_percentages
+#         if not event.is_directory and event.src_path.endswith('config.json'):
+#             print(f"Detected modification: {event}")  # 打印事件详情
+#             config_data = load_config()
+#             value_percentages = generate_value_percentages(config_data)
+#             print("Config reloaded and value percentages updated!")
 class ConfigFileHandler(FileSystemEventHandler):
     def on_modified(self, event):
         global config_data, value_percentages
@@ -23,9 +32,11 @@ class ConfigFileHandler(FileSystemEventHandler):
             print(f"Detected modification: {event}")  # 打印事件详情
             config_data = load_config()
             value_percentages = generate_value_percentages(config_data)
+            # 在这里调用新的函数来更新 CSV 文件
+            save_or_update_value_csv(value_percentages, os.path.join(dir_prefix, value_file))
             print("Config reloaded and value percentages updated!")
 
-# 设置文件监控
+# 监控config修改并加载最新config
 observer = Observer()
 observer.schedule(ConfigFileHandler(), path='.', recursive=False)
 observer.start()
@@ -93,23 +104,34 @@ def gantt():
 
 @app.route('/value', methods=['GET', 'POST'])
 def value():
+    # 载入最新的配置
+    config_data = load_config()
+    # 生成初始的百分比字典
+    value_percentages = generate_value_percentages(config_data)
+
     if request.method == 'POST':
+        print(request.form)  # 打印表单数据以确保它们被接收
+        # 遍历表单中的数据，更新 value_percentages 字典
         for key in value_percentages.keys():
             for subkey in value_percentages[key].keys():
-                value_percentages[key][subkey] = float(request.form.get(f"{key}_{subkey}", 0))
-        
-        # 验证各项百分比加起来是否为100%
+                form_key = f"{key}_{subkey}"
+                value_percentages[key][subkey] = float(request.form.get(form_key, 0))
+
+        # 验证每个业务类型的各价值占比总和是否为100%
         for key, sub_dict in value_percentages.items():
             if sum(sub_dict.values()) != 100.0:
                 flash(f'{key}的价值占比总和不为100%', 'danger')
                 return redirect(url_for('value'))
-        
-        # 这里可以将value_percentages保存到Excel表3.2
-        save_data_to_csv(value_percentages)
+
+        # 保存更新后的 value_percentages 到 CSV 文件
+        save_or_update_value_csv(value_percentages)
         flash('数据已更新!', 'success')
         return redirect(url_for('index'))
-    
+
+    # 如果是 GET 请求，或者表单验证未通过，则渲染价值分配界面
+    # 此处需要从 CSV 文件读取当前的价值分配情况，并传递到模板中
     return render_template('value.html', values=value_percentages, config=config_data)
+
 
 if __name__ == '__main__':
     try:

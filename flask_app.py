@@ -106,31 +106,33 @@ def gantt():
 def value():
     # 载入最新的配置
     config_data = load_config()
-    # 生成初始的百分比字典
-    value_percentages = generate_value_percentages(config_data)
+    
+    if request.method == 'GET':
+        # 读取 ValueData.csv 的数据
+        value_data_df = pd.read_csv(os.path.join(dir_prefix, value_file))
+        # 转换为字典格式
+        value_data_dict = {f"{row['业务']}_{row['价值']}": row['占比'] for index, row in value_data_df.iterrows()}
+
+        return render_template('value.html', config=config_data, value_data_dict=value_data_dict)
+
 
     if request.method == 'POST':
-        print(request.form)  # 打印表单数据以确保它们被接收
-        # 遍历表单中的数据，更新 value_percentages 字典
-        for key in value_percentages.keys():
-            for subkey in value_percentages[key].keys():
-                form_key = f"{key}_{subkey}"
-                value_percentages[key][subkey] = float(request.form.get(form_key, 0))
+        # 遍历表单中的数据，更新 value_data_df
+        for index, row in value_data_df.iterrows():
+            form_key = f"{row['业务']}_{row['价值']}"
+            form_value = request.form.get(form_key)
+            if form_value:
+                value_data_df.at[index, '占比'] = float(form_value)
+            else:
+                value_data_df.at[index, '占比'] = 0.0  # 未填写的字段设置为 0.0
 
-        # # 验证每个业务类型的各价值占比总和是否为100%
-        # for key, sub_dict in value_percentages.items():
-        #     if sum(sub_dict.values()) != 100.0:
-        #         flash(f'{key}的价值占比总和不为100%', 'danger')
-        #         return redirect(url_for('value'))
-
-        # 保存更新后的 value_percentages 到 CSV 文件
-        save_or_update_value_csv(value_percentages)
+        # 保存更新后的数据到 CSV 文件
+        value_data_df.to_csv(os.path.join(dir_prefix, value_file, index=False))
         flash('数据已更新!', 'success')
         return redirect(url_for('index'))
 
-    # 如果是 GET 请求，或者表单验证未通过，则渲染价值分配界面
-    # 此处需要从 CSV 文件读取当前的价值分配情况，并传递到模板中
-    return render_template('value.html', values=value_percentages, config=config_data)
+    # 如果是 GET 请求，则渲染价值分配界面，并传递配置和当前的价值分配数据
+    return render_template('value.html', config=config_data, value_data=value_data_df.to_dict(orient='records'))
 
 
 if __name__ == '__main__':

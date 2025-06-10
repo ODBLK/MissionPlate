@@ -127,7 +127,7 @@ def value():
                 value_data_df.at[index, '占比'] = 0.0  # 未填写的字段设置为 0.0
 
         # 保存更新后的数据到 CSV 文件
-        value_data_df.to_csv(os.path.join(dir_prefix, value_file, index=False))
+        value_data_df.to_csv(os.path.join(dir_prefix, value_file), index=False)
         flash('数据已更新!', 'success')
         return redirect(url_for('index'))
 
